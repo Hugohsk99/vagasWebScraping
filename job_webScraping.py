@@ -4,9 +4,13 @@ import pandas as pd
 import re
 import time
 
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+}
+
 def raspar_dados_vagas(url):
     time.sleep(2)  
-    response = requests.get(url)
+    response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.content, 'html.parser')
     
     vagas = []
@@ -28,14 +32,6 @@ def raspar_dados_vagas(url):
 
         company_tag = job.find('dt', string='Empresa:').find_next_sibling('dd')
         company = company_tag.text.strip() if company_tag else None
-        
-        # publication_date_tag = job.find('span', string='Publicada há:').find_next_sibling('span')
-        # publication_date = publication_date_tag.text.strip() if publication_date_tag else None
-        publication_date_tag = job.find("div", {"class": "tag"}).find_all("span")
-        if publication_date_tag and len(publication_date_tag) > 1:
-            publication_date = publication_date_tag[0].text.strip()
-        else:
-            publication_date = None
 
         description_tag = job.find("p", {"class": "job__description__value"})
         description = description_tag.text.strip() if description_tag else None
@@ -45,8 +41,7 @@ def raspar_dados_vagas(url):
                       "Salário": salary, 
                       "Empresa": company,
                       "Número de Vagas": num_jobs,
-                      "Data de Publicação": publication_date,
-                      "Descrição": description})  # Add the description to the dictionary
+                      "Descrição": description}) 
     
     return vagas
 
@@ -54,7 +49,7 @@ def raspar_dados_vagas(url):
 base_url = "https://www.bne.com.br/vagas-de-emprego-em-rio-de-janeiro-rj/?Page={}&CityName=rio-de-janeiro-rj&Sort=0"
 
 todos_dados_vagas = []
-for page_number in range(1, 2):  
+for page_number in range(1, 60):  
     page_url = base_url.format(page_number)
     dados_vagas = raspar_dados_vagas(page_url)
     todos_dados_vagas.extend(dados_vagas)
